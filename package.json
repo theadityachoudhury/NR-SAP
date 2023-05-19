@@ -1,0 +1,20 @@
+{
+  "name": "nr-sap",
+  "version": "0.0.1",
+  "description": "SAP portal for NR Sales and Marketing Pvt. Ltd",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js",
+    "serve": "ndoe app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "NR-SAP"
+  },
+  "keywords": [
+    "sap"
+  ],
+  "author": "Unknown Club",
+  "license": "ISC"
+}
