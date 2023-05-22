@@ -1,6 +1,6 @@
 const User = require("../models/Users");
 const Auth = require("../models/auths");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const {
@@ -202,7 +202,7 @@ const register = async (req, res, next) => {
 			});
 		}
 
-		const password = await bcrypt.hash(signupRequest.password, 12);
+		const password = await bcrypt.hash(passgen(12), 12);
 		const newUser = new User({
 			...signupRequest,
 			password,
@@ -338,6 +338,12 @@ const verify = async (req, res, next) => {
 					success: false,
 				});
 			}
+		} else {
+			return res.status(200).json({
+				reason:"otp",
+				message: "First generate otp then try verifying the account!",
+				success: false,
+			});
 		}
 	}
 };

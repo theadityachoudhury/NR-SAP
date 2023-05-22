@@ -6,4 +6,8 @@ module.exports = {
     REQUEST_TIMEOUT: process.env.REQUEST_TIMEOUT,
     PORT: process.env.PORT ? process.env.PORT : 3000,
     JWT_SECRET: process.env.JWT_SECRET,
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASS: process.env.SMTP_PASS,
+    SMTP_PORT: process.env.SMTP_PORT,
 }
