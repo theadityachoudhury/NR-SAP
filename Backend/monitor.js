@@ -1,6 +1,7 @@
 const axios = require('axios');
 const nodemailer = require('nodemailer');
-const { SMTP_HOST, SMTP_USER, SMTP_PASS,DB, REQUEST_TIMEOUT, PORT } = require('./config/db');
+const { set, connect } = require("mongoose");
+const { SMTP_HOST, SMTP_USER, SMTP_PASS,DB, REQUEST_TIMEOUT } = require('./config/db');
 
 const syssave = require('./models/monitoring-logs');
 
