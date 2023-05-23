@@ -62,7 +62,7 @@ const passgen = (length) => {
 	const uppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	const lowercaseLetters = "abcdefghijklmnopqrstuvwxyz";
 	const numbers = "0123456789";
-	const specialCharacters = "!@#$%^&*()_-+=<>?";
+	const specialCharacters = "!@#$%^&*()_";
 
 	const getRandomChar = (characters) => {
 		const randomIndex = Math.floor(Math.random() * characters.length);
@@ -91,7 +91,6 @@ const passgen = (length) => {
 		.split("")
 		.sort(() => 0.5 - Math.random())
 		.join("");
-
 	return password;
 };
 
@@ -201,8 +200,8 @@ const register = async (req, res, next) => {
 				success: false,
 			});
 		}
-
-		const password = await bcrypt.hash(passgen(12), 12);
+		let pass = passgen(12);
+		const password = await bcrypt.hash(pass, 12);
 		const newUser = new User({
 			...signupRequest,
 			password,
@@ -211,6 +210,7 @@ const register = async (req, res, next) => {
 
 		await newUser.save();
 		return res.status(201).json({
+			password: pass,
 			message: Register_MSG.signupSuccess,
 			success: true,
 		});
