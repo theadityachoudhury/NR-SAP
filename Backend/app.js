@@ -5,6 +5,7 @@ const { DB, REQUEST_TIMEOUT, PORT } = require("./config/db");
 const { success, error } = require("consola");
 const auth = require("./routes/auth-routes");
 const { mailer } = require("./controllers/mailer");
+const bank = require("./routes/bank-routes");
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", auth);
+app.use("/api/banking",bank);
 
 
 
