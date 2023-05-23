@@ -13,13 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //App routes start here
-app.use((req, res) => {
-	res.status(404).json({
-		reason: "invalid-request",
-		message: "The endpoint you wanna reach is not available! Please check the endpoint again",
-		success: false,
-	});
-});
+
   
 app.get("/", async (req, res) => {
 	await mailer("adityasubham03@gmail.com", "Server Log", "<b>Server is up and ready!!</b>", "aditya", "system_fatal");
@@ -41,7 +35,24 @@ app.post("/", (req, res, next) => {
 	});
 });
 
+app.get("/api/health", (req, res) => {
+	res.send({
+		message: "Server is Up and running",
+		success: true,
+	});
+});
+
 app.use("/api/auth", auth);
+
+
+
+app.use((req, res) => {
+	res.status(404).json({
+		reason: "invalid-request",
+		message: "The endpoint you wanna reach is not available! Please check the endpoint again",
+		success: false,
+	});
+});
 
 //App routes ends here
 
