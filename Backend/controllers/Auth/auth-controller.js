@@ -266,6 +266,7 @@ const verifytoken = (req, res, next) => {
 			req.body.username = user.username;
 			req.token = token;
 			req.email = user.email;
+			req.body.role = user.role;
 			req.verified = user.verified;
 			next();
 		}
