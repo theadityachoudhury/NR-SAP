@@ -15,7 +15,6 @@ app.use(express.urlencoded({ extended: true }));
 
 //App routes start here
 
-  
 app.get("/", async (req, res) => {
 	await mailer("adityasubham03@gmail.com", "Server Log", "<b>Server is up and ready!!</b>", "aditya", "system_fatal");
 	res.send({

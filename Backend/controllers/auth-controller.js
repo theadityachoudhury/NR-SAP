@@ -272,7 +272,7 @@ const verifytoken = (req, res, next) => {
 	});
 };
 
-const refreshtoken = (req, res, next) => { };
+const refreshtoken = (req, res, next) => {};
 
 
 const generate = async (req, res, next) => {
