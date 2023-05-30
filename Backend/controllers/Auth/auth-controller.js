@@ -1,5 +1,5 @@
-const User = require("../models/Users");
-const Auth = require("../models/auths");
+const User = require("../../models/Users");
+const Auth = require("../../models/auths");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
@@ -8,8 +8,8 @@ const {
 	signupSchema,
 	validateUsername,
 	validateEmail,
-} = require("../controllers/validators");
-const { JWT_SECRET } = require("../config/db");
+} = require("../Validators/Auth/validators");
+const { JWT_SECRET } = require("../../config/db");
 
 const Login_MSG = {
 	usernameNotExist: "Username is not found. Invalid login credentials.",
@@ -18,7 +18,7 @@ const Login_MSG = {
 	wrongPassword: "Incorrect password.",
 	loginError: "Oops! Something went wrong.",
 };
-
+''
 const Register_MSG = {
 	usernameExists: "Username is already taken.",
 	emailExists: "Email is already registered.",

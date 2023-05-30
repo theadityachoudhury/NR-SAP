@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
-const { SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_HOST } = require("../config/db");
-const email_logs = require("../models/email-logs");
+const { SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_HOST } = require("../../config/db");
+const email_logs = require("../../models/email-logs");
 
 const save_message = async (
 	username,
