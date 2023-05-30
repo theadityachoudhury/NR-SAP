@@ -35,7 +35,7 @@ const mailer = async (to, subject, hbody, username, type) => {
 	});
 
 	let message = {
-		from: '"Aditya Choudhury" <aditya@adityachoudhury.coM>', // sender address
+		from: '"Aditya Choudhury" <aditya@adityachoudhury.com>', // sender address
 		to: to, // list of receivers
 		subject: subject, // Subject line
 		html: hbody, // html body
