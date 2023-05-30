@@ -6,8 +6,8 @@ const {
 	generate,
 	verifytoken,
     logout,
-} = require("../controllers/auth-controller");
-const { checkloggedin, verification, isOTP } = require("../controllers/validators");
+} = require("../controllers/Auth/auth-controller");
+const { checkloggedin, verification, isOTP } = require("../controllers/Validators/Auth/validators");
 
 const router = express.Router();
 

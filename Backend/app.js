@@ -4,8 +4,7 @@ const cors = require("cors");
 const { DB, REQUEST_TIMEOUT, PORT } = require("./config/db");
 const { success, error } = require("consola");
 const auth = require("./routes/auth-routes");
-const { mailer } = require("./controllers/mailer");
-const bank = require("./routes/bank-routes");
+const { mailer } = require("./controllers/Mailer/mailer");
 
 const app = express();
 
@@ -17,7 +16,6 @@ app.use(express.urlencoded({ extended: true }));
 
   
 app.get("/", async (req, res) => {
-	await mailer("adityasubham03@gmail.com", "Server Log", "<b>Server is up and ready!!</b>", "aditya", "system_fatal");
 	res.send({
 		data: {
 			appName: "NR Sales SAP Portal!",
@@ -44,7 +42,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", auth);
-app.use("/api/banking",bank);
+// app.use("/api/banking",bank);
 
 
 

@@ -1,7 +1,7 @@
 const Joi = require("joi");
-const User = require("../models/Users");
+const User = require("../../../models/Users");
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../config/db");
+const { JWT_SECRET } = require("../../../config/db");
 
 const validateEmail = async (email) => {
 	let user = await User.findOne({ email });
@@ -54,8 +54,6 @@ const checkloggedin = (req, res, next) => {
 	} else {
 		next();
 	}
-
-	
 };
 
 const verification = (req, res, next) => {
@@ -65,11 +63,10 @@ const verification = (req, res, next) => {
 			message: "user already verified",
 			success: false,
 		});
-	}
-	else {
+	} else {
 		next();
 	}
-}
+};
 
 const isOTP = (req, res, next) => {
 	if (req.body.otp) {
