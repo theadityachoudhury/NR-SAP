@@ -1,5 +1,6 @@
 const User = require("../../models/Users");
 const Auth = require("../../models/auths");
+const RefreshToken = require("../../models/refreshToken");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
@@ -9,7 +10,7 @@ const {
 	validateUsername,
 	validateEmail,
 } = require("../Validators/Auth/validators");
-const { JWT_SECRET } = require("../../config/db");
+const { JWT_SECRET, JWT_REFRESH_TOKEN_SECRET } = require("../../config/db");
 
 const Login_MSG = {
 	usernameNotExist: "Username is not found. Invalid login credentials.",
@@ -105,8 +106,10 @@ const login = async (req, res, next) => {
 		const LoginRequest = await loginSchema.validateAsync(req.body);
 		let { username, password } = req.body;
 		let user;
+		let refreshTokenColl;
 		if (username) {
 			user = await User.findOne({ username });
+			refreshTokenColl = await RefreshToken.findOne({ username });
 		}
 
 		if (!user) {
@@ -136,23 +139,51 @@ const login = async (req, res, next) => {
 					verified: user.verified,
 				},
 				JWT_SECRET,
-				{ expiresIn: "1 days" }
+				{ expiresIn: "20s" }
 			);
+
+			let refreshToken = jwt.sign(
+				{
+					user_id: user._id,
+					role: user.role,
+					username: user.username,
+					email: user.email,
+					verified: user.verified,
+				},
+				JWT_REFRESH_TOKEN_SECRET
+			);
+
+			if(!refreshTokenColl){
+				const newRefreshTokenColl = new RefreshToken({
+					username,
+					refreshToken
+				});
+				newRefreshTokenColl.save();
+			}
+
+			if (refreshTokenColl) {
+				RefreshToken.updateOne({ email: user.email }, { $push: { refreshToken: refreshToken } })
+				  .then(result => {
+					console.log('Successfully updated the refresh token');
+				  })
+				  .catch(err => {
+					return res.status(404).json({
+						reason: "username",
+						message: "Cannot able To add the refresh token to the list of known refresh token",
+						success: false,
+					});
+					console.error(err);
+				  });
+			  }
 
 			let result = {
 				username: user.username,
 				role: user.role,
 				email: user.email,
 				token: token,
-				expiresIn: "1 days",
+				refreshToken: refreshToken,
+				expiresIn: "20s",
 			};
-
-			res.cookie(String(user._id), token, {
-				path: "/",
-				expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-				httpOnly: true,
-				sameSite: "lax",
-			});
 
 			return res.status(200).json({
 				...result,
@@ -167,6 +198,7 @@ const login = async (req, res, next) => {
 			});
 		}
 	} catch (err) {
+		console.log(err);
 		let errorMsg = Login_MSG.loginError;
 		if (err.isJoi === true) {
 			err.status = 403;
@@ -178,6 +210,39 @@ const login = async (req, res, next) => {
 			success: false,
 		});
 	}
+};
+
+const getuser = async (req, res, next) => {
+	let user;
+    if (req._id) {
+		const userid = req._id;
+		try {
+			user = await User.findById(userid, "-password");
+		} catch (err) {
+			return new Error(err);
+		}
+    } else if (req.email) {
+		const email = req.body.email;
+		try {
+			user = await User.findOne({ email: email });
+		} catch (err) {
+			return new Error(err);
+		}
+	}
+	if (!user) {
+		return res.status(404).json({ message: "User not found!!" });
+	}
+    let r;
+    if (req.token) {
+        let token = req.token
+        r = {
+            token,
+            user
+        }
+    } else {
+        r = user;
+    }
+	return res.status(200).json(r);
 };
 
 const register = async (req, res, next) => {
@@ -228,11 +293,57 @@ const register = async (req, res, next) => {
 	}
 };
 
+// const verifytoken = (req, res, next) => {
+// 	if (req.headers.cookie) {
+// 		const cookies = req.headers.cookie;
+// 		try {
+// 			token = cookies.split("=")[1];
+// 		} catch (err) {
+// 			console.log(err);
+// 		}
+// 	} else {
+// 		return res.status(200).json({
+// 			reason: "unauthorized",
+// 			message: "Session not found",
+// 			success: false,
+// 		});
+// 	}
+
+// 	if (!token) {
+// 		return res.status(200).json({
+// 			reason: "unauthorized",
+// 			message: "token not found",
+// 			success: false,
+// 		});
+// 	}
+
+// 	jwt.verify(String(token), JWT_SECRET, (err, user) => {
+// 		if (err) {
+// 			return res
+// 				.status(400)
+// 				.json({
+// 					reason: "unauthorized",
+// 					message: "Invalid token",
+// 					success: false,
+// 				});
+// 		} else {
+// 			req._id = user.user_id;
+// 			req.body.username = user.username;
+// 			req.token = token;
+// 			req.email = user.email;
+// 			req.body.role = user.role;
+// 			req.verified = user.verified;
+// 			next();
+// 		}
+// 	});
+// };
+
 const verifytoken = (req, res, next) => {
-	if (req.headers.cookie) {
-		const cookies = req.headers.cookie;
+	if (req.headers["authorization"]) {
+        const cookies = req.headers["authorization"];
+        // console.log(cookies);
 		try {
-			token = cookies.split("=")[1];
+			token = cookies.split(" ")[1];
 		} catch (err) {
 			console.log(err);
 		}
@@ -254,26 +365,23 @@ const verifytoken = (req, res, next) => {
 
 	jwt.verify(String(token), JWT_SECRET, (err, user) => {
 		if (err) {
-			return res
-				.status(400)
-				.json({
-					reason: "unauthorized",
-					message: "Invalid token",
-					success: false,
-				});
+			return res.status(400).json({
+				reason: "unauthorized",
+				message: "Invalid token",
+				success: false,
+			});
 		} else {
-			req._id = user.user_id;
-			req.body.username = user.username;
-			req.token = token;
+			req._id = user._id;
+			req.fname = user.fname;
+			req.lname = user.lname;
 			req.email = user.email;
-			req.body.role = user.role;
-			req.verified = user.verified;
+			req.phone = user.phone;
+			req.level = user.level;
+			req.token = token;
 			next();
 		}
 	});
 };
-
-const refreshtoken = (req, res, next) => {};
 
 
 const generate = async (req, res, next) => {
@@ -390,12 +498,103 @@ const logout = (req, res, next) => {
 	});
 };
 
+const refresh = async (req, res, next) => {
+	let refreshTokenColl;
+	var username = req.username;
+	console.log(username);
+	refreshTokenColl = await RefreshToken.findOne({ username });
+
+	if(!refreshTokenColl){
+		return res.status(400).json({
+			reason: "unauthorized",
+			message: "Invalid token",
+			success: false,
+		});
+	} else {
+		let token = jwt.sign(
+			{
+				_id: req._id,
+				fname: req.fname,
+				lname: req.lname,
+				email: req.email,
+				level: req.level,
+			},
+			JWT_SECRET,
+			{ expiresIn: "20s" }
+		);
+		return res.status(200).json({
+			token,
+			message: Login_MSG.loginSuccess,
+			success: true,
+		});
+	}
+
+
+};
+
+const verifyRefreshToken = async (req, res, next) => {
+	if (req.headers["authorization"]) {
+        const cookies = req.headers["authorization"];
+		try {
+			token = cookies.split(" ")[1];
+		} catch (err) {
+			console.log(err);
+		}
+	} else {
+		return res.status(200).json({
+			reason: "unauthorized",
+			message: "Session not found",
+			success: false,
+		});
+	}
+
+	if (!token) {
+		return res.status(200).json({
+			reason: "unauthorized",
+			message: "token not found",
+			success: false,
+		});
+	}
+
+	console.log(token);
+
+	jwt.verify(String(token), JWT_REFRESH_TOKEN_SECRET, (err, user) => {
+		if (err) {
+			console.log(err);
+			return res.status(400).json({
+				reason: "unauthorized",
+				message: "Invalid token",
+				success: false,
+			});
+		} else {
+			console.log("i am here");
+			// req._id = user._id;
+			// req.fname = user.fname;
+			// req.lname = user.lname;
+			// req.username = user.username;
+			// req.level = user.level;
+			// req.token = token;
+
+			console.log(user.username);
+
+			req.user_id = user._id,
+			req.role = user.role,
+			req.username = user.username,
+			req.email = user.email,
+			req.verified = user.verified,
+			next();
+		}
+	});
+};
+
 module.exports = {
 	login,
 	register,
 	verify,
 	generate,
 	verifytoken,
-	refreshtoken,
 	logout,
+	verifyRefreshToken,
+	refresh,
+	getuser
 };

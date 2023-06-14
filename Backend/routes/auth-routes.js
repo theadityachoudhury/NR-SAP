@@ -7,6 +7,9 @@ const {
 	generate,
 	verifytoken,
 	logout,
+	verifyRefreshToken,
+	refresh,
+	getuser
 } = require("../controllers/Auth/auth-controller");
 const {
 	checkloggedin,
@@ -17,10 +20,11 @@ const { roleValidator } = require("../controllers/Validators/Auth/role-validator
 
 const router = express.Router();
 
-router.post("/login", checkloggedin, login);
+router.post("/login", login);
 router.post("/register", register);
 router.post("/verify", verifytoken, verification, isOTP, verify, logout);
-router.post("/generate", verifytoken, verification, generate);
+router.get("/user", verifytoken, getuser);
+router.get("/refresh",  verifyRefreshToken, refresh);
 router.post("/logout", logout);
 router.post(
 	"/test",
