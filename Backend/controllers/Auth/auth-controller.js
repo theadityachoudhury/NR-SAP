@@ -230,7 +230,11 @@ const getuser = async (req, res, next) => {
 		}
 	}
 	if (!user) {
-		return res.status(404).json({ message: "User not found!!" });
+		return res.status(404).json({
+			reason: "user",
+			message: "user not found",
+			success: false,
+		});
 	}
     let r;
     if (req.token) {
@@ -371,13 +375,12 @@ const verifytoken = (req, res, next) => {
 				success: false,
 			});
 		} else {
-			req._id = user._id;
-			req.fname = user.fname;
-			req.lname = user.lname;
-			req.email = user.email;
-			req.phone = user.phone;
-			req.level = user.level;
+			req._id = user.user_id;
+			req.body.username = user.username;
 			req.token = token;
+			req.email = user.email;
+			req.body.role = user.role;
+			req.verified = user.verified;
 			next();
 		}
 	});
