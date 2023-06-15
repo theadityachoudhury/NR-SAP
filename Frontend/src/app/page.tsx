@@ -1,7 +1,7 @@
 "use client";
 import React, { ChangeEvent, useState } from "react";
 import jwt from "jsonwebtoken";
-import axios from "axios";
+import axios, { Axios } from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -29,11 +29,14 @@ export default function Home() {
         console.log(res.data);
       }
     } catch (e)
-     {
-      console.log(e?.response);
-      console.log(e?.response?.data?.reason);
-      console.log(e?.response?.data?.message);
-      console.log(e?.response?.data.reason);
+    {
+      if (axios.isAxiosError(e)) {
+        const resData = e.response;
+        console.log(e.response);
+        console.log(e.response?.data?.reason);
+        console.log(e.response?.data?.message);
+        console.log(e.response?.data?.reason);
+      }
     }
   }
 
