@@ -164,12 +164,12 @@ const login = async (req, res, next) => {
 			if (refreshTokenColl) {
 				RefreshToken.updateOne({ email: user.email }, { $push: { refreshToken: refreshToken } })
 				  .then(result => {
-					console.log('Successfully updated the refresh token');
+					// console.log('Successfully updated the refresh token');
 				  })
 				  .catch(err => {
-					return res.status(404).json({
+					return res.status(406).json({
 						reason: "username",
-						message: "Cannot able To add the refresh token to the list of known refresh token",
+						message: "Unable to generate refresh token",
 						success: false,
 					});
 					console.error(err);
@@ -191,7 +191,7 @@ const login = async (req, res, next) => {
 				success: true,
 			});
 		} else {
-			return res.status(200).json({
+			return res.status(401).json({
 				reason: "password",
 				message: Login_MSG.wrongPassword,
 				success: false,
@@ -204,7 +204,7 @@ const login = async (req, res, next) => {
 			err.status = 403;
 			errorMsg = err.message;
 		}
-		return res.status(500).json({
+		return res.status(err.status).json({
 			reason: "server",
 			message: errorMsg,
 			success: false,
