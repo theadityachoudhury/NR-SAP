@@ -19,7 +19,7 @@ const Login_MSG = {
 	wrongPassword: "Incorrect password.",
 	loginError: "Oops! Something went wrong.",
 };
-''
+("");
 const Register_MSG = {
 	usernameExists: "Username is already taken.",
 	emailExists: "Email is already registered.",
@@ -95,11 +95,11 @@ const passgen = (length) => {
 	return password;
 };
 
-const verifyUser = async (username,verified) => {
+const verifyUser = async (username, verified) => {
 	let user = await User.findOne({ username });
 	user.verified = verified;
 	await user.save();
-}
+};
 
 const login = async (req, res, next) => {
 	try {
@@ -153,28 +153,31 @@ const login = async (req, res, next) => {
 				JWT_REFRESH_TOKEN_SECRET
 			);
 
-			if(!refreshTokenColl){
+			if (!refreshTokenColl) {
 				const newRefreshTokenColl = new RefreshToken({
 					username,
-					refreshToken
+					refreshToken,
 				});
 				newRefreshTokenColl.save();
 			}
 
 			if (refreshTokenColl) {
-				RefreshToken.updateOne({ email: user.email }, { $push: { refreshToken: refreshToken } })
-				  .then(result => {
-					// console.log('Successfully updated the refresh token');
-				  })
-				  .catch(err => {
-					return res.status(406).json({
-						reason: "username",
-						message: "Unable to generate refresh token",
-						success: false,
+				RefreshToken.updateOne(
+					{ email: user.email },
+					{ $push: { refreshToken: refreshToken } }
+				)
+					.then((result) => {
+						// console.log('Successfully updated the refresh token');
+					})
+					.catch((err) => {
+						return res.status(406).json({
+							reason: "username",
+							message: "Unable to generate refresh token",
+							success: false,
+						});
+						console.error(err);
 					});
-					console.error(err);
-				  });
-			  }
+			}
 
 			let result = {
 				username: user.username,
@@ -214,14 +217,14 @@ const login = async (req, res, next) => {
 
 const getuser = async (req, res, next) => {
 	let user;
-    if (req._id) {
+	if (req._id) {
 		const userid = req._id;
 		try {
 			user = await User.findById(userid, "-password");
 		} catch (err) {
 			return new Error(err);
 		}
-    } else if (req.email) {
+	} else if (req.email) {
 		const email = req.body.email;
 		try {
 			user = await User.findOne({ email: email });
@@ -236,16 +239,16 @@ const getuser = async (req, res, next) => {
 			success: false,
 		});
 	}
-    let r;
-    if (req.token) {
-        let token = req.token
-        r = {
-            token,
-            user
-        }
-    } else {
-        r = user;
-    }
+	let r;
+	if (req.token) {
+		let token = req.token;
+		r = {
+			token,
+			user,
+		};
+	} else {
+		r = user;
+	}
 	return res.status(200).json(r);
 };
 
@@ -344,8 +347,158 @@ const register = async (req, res, next) => {
 
 const verifytoken = (req, res, next) => {
 	if (req.headers["authorization"]) {
-        const cookies = req.headers["authorization"];
-        // console.log(cookies);
+		const cookies = req.headers["authorization"];
+		// console.log(cookies);
+		try {
+			token = cookies.split(" ")[1];
+		} catch (err) {
+			console.log(err);
+		}
+	} else {
+		return res.status(401).json({
+			reason: "unauthorized",
+			message: "Session not found",
+			success: false,
+		});
+	}
+
+	if (!token) {
+		return res.status(401).json({
+			reason: "unauthorized",
+			message: "token not found",
+			success: false,
+		});
+	}
+
+	jwt.verify(String(token), JWT_SECRET, (err, user) => {
+		if (err) {
+			return res.status(400).json({
+				reason: "unauthorized",
+				message: "Invalid token",
+				success: false,
+			});
+		} else {
+			req._id = user.user_id;
+			req.body.username = user.username;
+			req.token = token;
+			req.email = user.email;
+			req.body.role = user.role;
+			req.verified = user.verified;
+			next();
+		}
+	});
+};
+
+const generate = async (req, res, next) => {
+	const otp_len = 6;
+	const auth_type = "acc_verify";
+	let otp;
+	const email = req.email;
+	const username = req.body.username;
+
+	let auth = await Auth.findOne({ username, auth_type: auth_type });
+	if (auth) {
+		otp = auth.otp;
+	} else {
+		otp = otpgen(otp_len);
+		auth = new Auth({
+			email,
+			username,
+			auth_type,
+			otp,
+		});
+
+		try {
+			await auth.save();
+		} catch (err) {
+			return res.status(500).json({
+				reason: "error",
+				message: "Internal Server Error! Cannot generate OTP!",
+				success: false,
+			});
+		}
+	}
+
+	return res.status(200).json({
+		otp: otp,
+		message: "OTP generated successfully and sent to registered E-Mail",
+		success: true,
+	});
+};
+
+const verify = async (req, res, next) => {
+	const auth_type = "acc_verify";
+	const { username, otp } = req.body;
+	if (validateUsername(username)) {
+		let auth = await Auth.findOne({ username, auth_type: auth_type });
+		if (auth) {
+			if (auth.otp === otp) {
+				verifyUser(username, true);
+				await Auth.findByIdAndDelete(auth._id);
+				console.log(req._id);
+				res.clearCookie(req._id);
+				return res.status(200).json({
+					message: "Account verified successfully",
+					success: true,
+				});
+			} else {
+				return res.status(401).json({
+					reason: "otp",
+					message: "OTP is wrong",
+					success: false,
+				});
+			}
+		} else {
+			return res.status(403).json({
+				reason: "otp",
+				message: "First generate otp then try verifying the account!",
+				success: false,
+			});
+		}
+	}
+};
+
+// const logout = (req, res, next) => {
+// 	const cookies = req.headers.cookie;
+// 	try {
+// 		const prevToken = cookies.split("=")[1];
+// 		if (!prevToken) {
+// 			return res.status(401).json({
+// 				reason: "unauthorized",
+// 				message: "token not found",
+// 				success: false,
+// 			});
+// 		}
+// 		jwt.verify(String(prevToken), JWT_SECRET, (err, user) => {
+// 			if (err) {
+// 				console.log(err);
+// 				return res.status(401).json({
+// 					reason: "unauthorized",
+// 					message: "Authentication failed",
+// 					success: false,
+// 				});
+// 			}
+// 			res.clearCookie(user.user_id);
+// 		});
+
+// 	}
+// 	catch (err) {
+// 		return res.status(200).json({
+// 			reason: "loggedout",
+// 			message: "Cookie not found already logged out",
+// 			success: false,
+// 		});
+// 	}
+
+// 	return res.status(200).json({
+// 		message: "Successfully Logged Out",
+// 		success: true,
+// 	});
+// };
+
+const logout = async (req, res, next) => {
+	if (req.headers["authorization"]) {
+		const cookies = req.headers["authorization"];
 		try {
 			token = cookies.split(" ")[1];
 		} catch (err) {
@@ -375,130 +528,47 @@ const verifytoken = (req, res, next) => {
 				success: false,
 			});
 		} else {
-			req._id = user.user_id;
-			req.body.username = user.username;
-			req.token = token;
-			req.email = user.email;
-			req.body.role = user.role;
-			req.verified = user.verified;
-			next();
-		}
-	});
-};
+			const refreshToken = req.body.refreshToken;
+			console.log(refreshToken);
 
+			RefreshToken.findOne({ refreshToken: refreshToken })
+				.then((foundToken) => {
+					console.log(foundToken);
+					if (!foundToken) {
+						throw new Error("Invalid refreshToken");
+					}
 
-const generate = async (req, res, next) => {
-	
-	const otp_len = 6;
-	const auth_type = "acc_verify"
-	let otp;
-	const email = req.email;
-	const username = req.body.username;
+					console.log("the email is :- " + user.username);
 
-	let auth = await Auth.findOne({ username, auth_type:auth_type });
-	if (auth) {
-		otp = auth.otp
-	}
-	else {
-		otp = otpgen(otp_len);
-		auth = new Auth({
-			email,
-			username,
-			auth_type,
-			otp,
-		})
+					return RefreshToken.updateOne(
+						{ email: user.email },
+						{ $pull: { refreshToken: refreshToken } }
+					);
+				})
+				.then((result) => {
+					if (result.nModified === 0) {
+						throw new Error("Failed to remove refreshToken");
+					}
 
-		try {
-			await auth.save();
-		} catch (err) {
-			return res.status(500).json({
-				reason: "error",
-				message: "Internal Server Error! Cannot generate OTP!",
-				success: false,
-			});
-		}
-	}
-
-	return res.status(200).json({
-		otp:otp,
-		message: "OTP generated successfully and sent to registered E-Mail",
-		success: true,
-	});
-};
-
-const verify = async (req, res, next) => {
-	const auth_type = "acc_verify";
-	const { username, otp } = req.body;
-	if (validateUsername(username)) {
-		let auth = await Auth.findOne({ username, auth_type: auth_type });
-		if (auth) {
-			if (auth.otp === otp) {
-				verifyUser(username, true);
-				await Auth.findByIdAndDelete(auth._id);
-				console.log(req._id);
-				res.clearCookie(req._id);
-				return res.status(200).json({
-					message: "Account verified successfully",
-					success: true,
+					console.log("Successfully removed the refreshToken from the array");
+					return res.status(200).json({
+						reason: "Logout",
+						message: "Successfully Logged Out",
+						success: true,
+					});
+				})
+				.catch((err) => {
+					console.error(err.message);
+					return res.status(401).json({
+						reason: "token",
+						message: "Invalid Token/s",
+						success: false,
+					});
 				});
-
-			}
-			else {
-				return res.status(200).json({
-					reason:"otp",
-					message: "OTP is wrong",
-					success: false,
-				});
-			}
-		} else {
-			return res.status(200).json({
-				reason:"otp",
-				message: "First generate otp then try verifying the account!",
-				success: false,
-			});
 		}
-	}
-};
-
-
-const logout = (req, res, next) => {
-	const cookies = req.headers.cookie;
-	try {
-		const prevToken = cookies.split("=")[1];
-		if (!prevToken) {
-			return res.status(200).json({
-				reason: "unauthorized",
-				message: "token not found",
-				success: false,
-			});
-		}
-		jwt.verify(String(prevToken), JWT_SECRET, (err, user) => {
-			if (err) {
-				console.log(err);
-				return res.status(200).json({
-					reason: "unauthorized",
-					message: "Authentication failed",
-					success: false,
-				});
-			}
-			res.clearCookie(user.user_id);
-		});
 		
-		
-	}
-	catch (err) {
-		return res.status(200).json({
-			reason: "loggedout",
-			message: "Cookie not found already logged out",
-			success: false,
-		});
-	}
-	
-	
-	return res.status(200).json({
-		message: "Successfully Logged Out",
-		success: true,
 	});
+
 };
 
 const refresh = async (req, res, next) => {
@@ -507,8 +577,8 @@ const refresh = async (req, res, next) => {
 	console.log(username);
 	refreshTokenColl = await RefreshToken.findOne({ username });
 
-	if(!refreshTokenColl){
-		return res.status(400).json({
+	if (!refreshTokenColl) {
+		return res.status(401).json({
 			reason: "unauthorized",
 			message: "Invalid token",
 			success: false,
@@ -531,20 +601,18 @@ const refresh = async (req, res, next) => {
 			success: true,
 		});
 	}
-
-
 };
 
 const verifyRefreshToken = async (req, res, next) => {
 	if (req.headers["authorization"]) {
-        const cookies = req.headers["authorization"];
+		const cookies = req.headers["authorization"];
 		try {
 			token = cookies.split(" ")[1];
 		} catch (err) {
 			console.log(err);
 		}
 	} else {
-		return res.status(200).json({
+		return res.status(401).json({
 			reason: "unauthorized",
 			message: "Session not found",
 			success: false,
@@ -552,7 +620,7 @@ const verifyRefreshToken = async (req, res, next) => {
 	}
 
 	if (!token) {
-		return res.status(200).json({
+		return res.status(401).json({
 			reason: "unauthorized",
 			message: "token not found",
 			success: false,
@@ -564,7 +632,7 @@ const verifyRefreshToken = async (req, res, next) => {
 	jwt.verify(String(token), JWT_REFRESH_TOKEN_SECRET, (err, user) => {
 		if (err) {
 			console.log(err);
-			return res.status(400).json({
+			return res.status(401).json({
 				reason: "unauthorized",
 				message: "Invalid token",
 				success: false,
@@ -580,12 +648,12 @@ const verifyRefreshToken = async (req, res, next) => {
 
 			console.log(user.username);
 
-			req.user_id = user._id,
-			req.role = user.role,
-			req.username = user.username,
-			req.email = user.email,
-			req.verified = user.verified,
-			next();
+			(req.user_id = user._id),
+				(req.role = user.role),
+				(req.username = user.username),
+				(req.email = user.email),
+				(req.verified = user.verified),
+				next();
 		}
 	});
 };
@@ -599,5 +667,5 @@ module.exports = {
 	logout,
 	verifyRefreshToken,
 	refresh,
-	getuser
+	getuser,
 };
