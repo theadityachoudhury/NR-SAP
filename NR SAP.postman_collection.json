@@ -11,12 +11,23 @@
 			"item": [
 				{
 					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\":\"aditya\",\r\n    \"password\":\"27Vcefn$\"\r\n}",
+							"raw": "{\r\n    \"username\":{{username}},\r\n    \"password\":{{password}}\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -24,12 +35,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:5000/api/auth/login",
-							"protocol": "http",
+							"raw": "{{global}}/api/auth/login",
 							"host": [
-								"localhost"
+								"{{global}}"
 							],
-							"port": "5000",
 							"path": [
 								"api",
 								"auth",
@@ -46,7 +55,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\":\"aditya\",\r\n    \"email\":\"adityasubham03@gmail.com\",\r\n    \"name\":\"Aditya Choudhury\",\r\n    \"role\":\"admin\"\r\n}",
+							"raw": "{\r\n    \"username\":\"aditya\",\r\n    \"email\":\"adityasubham03@gmail.com\",\r\n    \"name\":\"Aditya Choudhury\",\r\n    \"role\":[\"admin\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -54,12 +63,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:5000/api/auth/register",
-							"protocol": "http",
+							"raw": "{{local}}/api/auth/register",
 							"host": [
-								"localhost"
+								"{{local}}"
 							],
-							"port": "5000",
 							"path": [
 								"api",
 								"auth",
@@ -75,12 +82,10 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:5000/api/auth/generate",
-							"protocol": "http",
+							"raw": "{{local}}/api/auth/generate",
 							"host": [
-								"localhost"
+								"{{local}}"
 							],
-							"port": "5000",
 							"path": [
 								"api",
 								"auth",
@@ -105,12 +110,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:5000/api/auth/verify",
-							"protocol": "http",
+							"raw": "{{local}}/api/auth/verify",
 							"host": [
-								"localhost"
+								"{{local}}"
 							],
-							"port": "5000",
 							"path": [
 								"api",
 								"auth",
@@ -123,19 +126,161 @@
 				{
 					"name": "Logout",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNvdXJhdmdvZWw5MDkxQGdtYWlsLmNvbSIsImlhdCI6MTY4Njg1NzQ1NSwiZXhwIjoxNjg2ODU3NDc1fQ.j1hWAzBU2uSIMeoFXBaRHtoOAKgWDNhgsTAdF-eI_cU",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjQ4OTlkMzYxMTcxMzRlYmI4ZGJjY2JiIiwicm9sZSI6WyJhZG1pbiJdLCJ1c2VybmFtZSI6InNvdXJhdiIsImVtYWlsIjoic291cmF2Z29lbDkwOTFAZ21haWwuY29tIiwidmVyaWZpZWQiOmZhbHNlLCJpYXQiOjE2ODY4NTcwNzl9.c-D6ytOgJW0KOAJ1-hgcQdq7qmT000ksXb0Um4N__2M\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "http://localhost:5000/api/auth/logout",
-							"protocol": "http",
+							"raw": "{{local}}/api/auth/logout",
 							"host": [
-								"localhost"
+								"{{local}}"
 							],
-							"port": "5000",
 							"path": [
 								"api",
 								"auth",
 								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Role Test",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/api/auth/test",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"test"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjQ4OTlkMzYxMTcxMzRlYmI4ZGJjY2JiIiwicm9sZSI6WyJhZG1pbiJdLCJ1c2VybmFtZSI6InNvdXJhdiIsImVtYWlsIjoic291cmF2Z29lbDkwOTFAZ21haWwuY29tIiwidmVyaWZpZWQiOmZhbHNlLCJpYXQiOjE2ODY3NDYxNTAsImV4cCI6MTY4Njc0NjE3MH0.uNvAQxbhb-EJYzjze_d9yAmRbYHAwA4UoAh96J-0VR4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/api/auth/user",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjQ4OTlkMzYxMTcxMzRlYmI4ZGJjY2JiIiwicm9sZSI6WyJhZG1pbiJdLCJ1c2VybmFtZSI6InNvdXJhdiIsImVtYWlsIjoic291cmF2Z29lbDkwOTFAZ21haWwuY29tIiwidmVyaWZpZWQiOmZhbHNlLCJpYXQiOjE2ODY4NTc3NDB9.TKNbph5IE6xQBLxmUArorX4h3cALnBqHEoe7VWG7-Xo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/api/auth/refresh",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"if (jsonData.status === 200) {",
+									"pm.globals.set(\"token\", jsonData.token);",
+									"pm.globals.set(\"refreshToken\", jsonData.refreshToken);",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    pm.globals.get(\"username\");",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\":\"{{username}}\",\n    \"password\":\"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{global}}/api/auth/login",
+							"host": [
+								"{{global}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
 							]
 						}
 					},
@@ -148,7 +293,7 @@
 					"script": {
 						"type": "text/javascript",
 						"exec": [
-							"pm.collectionVariables.set(\"local\", \"http://localhost:5000/\");"
+							""
 						]
 					}
 				},
@@ -164,19 +309,47 @@
 			]
 		},
 		{
+			"name": "Roles",
+			"item": [
+				{
+					"name": "Add Roles",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"endpoint\":\"test\",\r\n    \"access\":[\"admin\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/roles/add",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"roles",
+								"add"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Root GET",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:5000/",
-					"protocol": "http",
+					"raw": "{{local}}",
 					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						""
+						"{{local}}"
 					]
 				}
 			},
@@ -188,14 +361,9 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:5000/",
-					"protocol": "http",
+					"raw": "{{local}}",
 					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						""
+						"{{local}}"
 					]
 				}
 			},
@@ -207,12 +375,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:5000/api/health",
-					"protocol": "http",
+					"raw": "{{local}}/api/health",
 					"host": [
-						"localhost"
+						"{{local}}"
 					],
-					"port": "5000",
 					"path": [
 						"api",
 						"health"
@@ -222,10 +388,58 @@
 			"response": []
 		}
 	],
+	"auth": {
+		"type": "bearer"
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
 	"variable": [
 		{
 			"key": "local",
-			"value": ""
+			"value": "http://localhost:5000"
+		},
+		{
+			"key": "global",
+			"value": "https://backend.unknownclub.me",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": "sourav",
+			"type": "string"
+		},
+		{
+			"key": "password",
+			"value": "sNz76!C_XrTq",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
 		}
 	]
 }
