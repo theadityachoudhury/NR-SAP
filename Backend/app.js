@@ -28,7 +28,7 @@ app.get("/", async (req, res) => {
 			appName: "NR Sales SAP Portal!",
 			developedBy: "Unknown Club",
 			maintainedBy: "Unknown Club",
-			version: "0.0.1",
+			version: "1.0.5",
 		},
 		success: true,
 	});
