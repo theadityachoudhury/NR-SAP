@@ -3,17 +3,22 @@ const { set, connect } = require("mongoose");
 const cors = require("cors");
 const { DB, REQUEST_TIMEOUT, PORT } = require("./config/db");
 const { success, error } = require("consola");
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 const auth = require("./routes/auth-routes");
 const roles = require("./routes/roles-routes");
 const { mailer } = require("./controllers/Mailer/mailer");
 
 const app = express();
 
+const allowedOrigins =
+	process.env.NODE_ENV === "production"
+		? ["https://frontend.unknownclub.me"]
+		: ["http://localhost:5173"];
+
 app.use(
 	cors({
 		credentials: true,
-		origin: "http://localhost:5173",
+		origin: allowedOrigins,
 	})
 );
 app.use(express.json());
