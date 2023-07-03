@@ -10,7 +10,16 @@ import axios from "axios";
 import { UserContextProvider } from "./UserContext";
 import AccountPage from "./pages/AccountPage";
 
-axios.defaults.baseURL = "http://localhost:5000";
+// axios.defaults.baseURL = "http://localhost:5000";
+
+const baseURL = window.location.hostname === "frontend.unknownclub.me"
+  ? "https://backend.unknownclub.me"
+	: "http://localhost:5000";
+// console.log(baseURL);
+
+axios.defaults.baseURL = baseURL;
+
+
 axios.defaults.withCredentials = true;
 
 function App() {
