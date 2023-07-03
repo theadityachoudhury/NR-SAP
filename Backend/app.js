@@ -12,8 +12,8 @@ const app = express();
 
 const allowedOrigins =
 	process.env.NODE_ENV === "production"
-		? ["https://frontend.unknownclub.me"]
-		: ["http://localhost:5173"];
+		? "https://frontend.unknownclub.me"
+		: "http://localhost:5173";
 
 app.use(
 	cors({
