@@ -27,6 +27,7 @@ const Register_MSG = {
 	signupError: "Unable to create your account.",
 };
 
+//OTP Generator
 const otpgen = (length) => {
 	const alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	const digits = "0123456789";
@@ -59,6 +60,7 @@ const otpgen = (length) => {
 	return otp;
 };
 
+//Automatic Password Generator
 const passgen = (length) => {
 	const uppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	const lowercaseLetters = "abcdefghijklmnopqrstuvwxyz";
@@ -95,163 +97,14 @@ const passgen = (length) => {
 	return password;
 };
 
+//Internal function to verify a user
 const verifyUser = async (username, verified) => {
 	let user = await User.findOne({ username });
 	user.verified = verified;
 	await user.save();
 };
 
-const login = async (req, res, next) => {
-	try {
-		const LoginRequest = await loginSchema.validateAsync(req.body);
-		let { username, password } = req.body;
-		let user;
-		let refreshTokenColl;
-		if (username) {
-			user = await User.findOne({ username });
-			refreshTokenColl = await RefreshToken.findOne({ username });
-		}
-
-		if (!user) {
-			return res.status(404).json({
-				reason: "username",
-				message: Login_MSG.usernameNotExist,
-				success: false,
-			});
-		}
-
-		if (user.deleted) {
-			return res.status(404).json({
-				reason: "username",
-				message: Login_MSG.usernameNotExist,
-				success: false,
-			});
-		}
-
-		let isMatch = await bcrypt.compare(password, user.password);
-		if (isMatch) {
-			let token = jwt.sign(
-				{
-					user_id: user._id,
-					role: user.role,
-					username: user.username,
-					email: user.email,
-					verified: user.verified,
-				},
-				JWT_SECRET,
-				{ expiresIn: "20s" }
-			);
-
-			let refreshToken = jwt.sign(
-				{
-					user_id: user._id,
-					role: user.role,
-					username: user.username,
-					email: user.email,
-					verified: user.verified,
-				},
-				JWT_REFRESH_TOKEN_SECRET
-			);
-
-			if (!refreshTokenColl) {
-				const newRefreshTokenColl = new RefreshToken({
-					username,
-					refreshToken,
-				});
-				newRefreshTokenColl.save();
-			}
-
-			if (refreshTokenColl) {
-				RefreshToken.updateOne(
-					{ email: user.email },
-					{ $push: { refreshToken: refreshToken } }
-				)
-					.then((result) => {
-						// console.log('Successfully updated the refresh token');
-					})
-					.catch((err) => {
-						return res.status(406).json({
-							reason: "username",
-							message: "Unable to generate refresh token",
-							success: false,
-						});
-						console.error(err);
-					});
-			}
-
-			let result = {
-				username: user.username,
-				role: user.role,
-				email: user.email,
-				token: token,
-				refreshToken: refreshToken,
-				expiresIn: "20s",
-			};
-
-			return res.status(200).json({
-				...result,
-				message: Login_MSG.loginSuccess,
-				success: true,
-			});
-		} else {
-			return res.status(401).json({
-				reason: "password",
-				message: Login_MSG.wrongPassword,
-				success: false,
-			});
-		}
-	} catch (err) {
-		console.log(err);
-		let errorMsg = Login_MSG.loginError;
-		if (err.isJoi === true) {
-			err.status = 403;
-			errorMsg = err.message;
-		}
-		return res.status(err.status).json({
-			reason: "server",
-			message: errorMsg,
-			success: false,
-		});
-	}
-};
-
-const getuser = async (req, res, next) => {
-	let user;
-	if (req._id) {
-		const userid = req._id;
-		try {
-			user = await User.findById(userid, "-password");
-		} catch (err) {
-			return new Error(err);
-		}
-	} else if (req.email) {
-		const email = req.body.email;
-		try {
-			user = await User.findOne({ email: email });
-		} catch (err) {
-			return new Error(err);
-		}
-	}
-	if (!user) {
-		return res.status(404).json({
-			reason: "user",
-			message: "user not found",
-			success: false,
-		});
-	}
-	let r;
-	if (req.token) {
-		let token = req.token;
-		r = {
-			token,
-			user,
-		};
-	} else {
-		r = user;
-	}
-	return res.status(200).json(r);
-};
-
+//Public API functions starts here
 const register = async (req, res, next) => {
 	try {
 		const role = req.body.role;
@@ -300,6 +153,153 @@ const register = async (req, res, next) => {
 	}
 };
 
+const login = async (req, res, next) => {
+	try {
+		const LoginRequest = await loginSchema.validateAsync(req.body);
+		let { username, password } = req.body;
+		let user;
+		let refreshTokenColl;
+		if (username) {
+			user = await User.findOne({ username });
+			refreshTokenColl = await RefreshToken.findOne({ username });
+		}
+
+		if (!user) {
+			return res.status(404).json({
+				reason: "username",
+				message: Login_MSG.usernameNotExist,
+				success: false,
+			});
+		}
+
+		if (user.deleted) {
+			return res.status(404).json({
+				reason: "username",
+				message: Login_MSG.usernameNotExist,
+				success: false,
+			});
+		}
+
+		let isMatch = await bcrypt.compare(password, user.password);
+		if (isMatch) {
+			let token = jwt.sign(
+				{
+					user_id: user._id,
+					role: user.role,
+					username: user.username,
+					email: user.email,
+					verified: user.verified,
+				},
+				JWT_SECRET,
+				{ expiresIn: "10m" }
+			);
+
+			let refreshToken = jwt.sign(
+				{
+					user_id: user._id,
+					role: user.role,
+					username: user.username,
+					email: user.email,
+					verified: user.verified,
+				},
+				JWT_REFRESH_TOKEN_SECRET
+			);
+
+			if (!refreshTokenColl) {
+				const newRefreshTokenColl = new RefreshToken({
+					username,
+					refreshToken,
+				});
+				newRefreshTokenColl.save();
+			}
+
+			if (refreshTokenColl) {
+				RefreshToken.updateOne(
+					{ username: user.username },
+					{ $push: { refreshToken: refreshToken } }
+				)
+					.then((result) => {
+						// console.log('Successfully updated the refresh token');
+					})
+					.catch((err) => {
+						return res.status(406).json({
+							reason: "username",
+							message: "Unable to generate refresh token",
+							success: false,
+						});
+						console.error(err);
+					});
+			}
+
+			res.cookie("token", token);
+			res.cookie("refreshToken", refreshToken);
+
+			let result = {
+				token: token,
+				refreshToken: refreshToken,
+			};
+
+			return res.status(200).json({
+				...result,
+				data: user,
+				message: Login_MSG.loginSuccess,
+				success: true,
+			});
+		} else {
+			return res.status(401).json({
+				reason: "password",
+				message: Login_MSG.wrongPassword,
+				success: false,
+			});
+		}
+	} catch (err) {
+		console.log(err);
+		let errorMsg = Login_MSG.loginError;
+		if (err.isJoi === true) {
+			err.status = 403;
+			errorMsg = err.message;
+		}
+		return res.status(err.status).json({
+			reason: "server",
+			message: errorMsg,
+			success: false,
+		});
+	}
+};
+
+const getuser = async (req, res, next) => {
+	let user;
+	if (req._id) {
+		const userid = req._id;
+		try {
+			user = await User.findById(userid, "-password");
+		} catch (err) {
+			return new Error(err);
+		}
+	} else if (req.email) {
+		const email = req.body.email;
+		try {
+			user = await User.findOne({ email: email });
+		} catch (err) {
+			return new Error(err);
+		}
+	}
+	if (!user) {
+		return res.status(200).json(null);
+	}
+	let r;
+	if (req.token) {
+		let token = req.token;
+		r = {
+			token,
+			user,
+		};
+	} else {
+		r = user;
+	}
+	return res.status(200).json({data:user});
+};
+
 // const verifytoken = (req, res, next) => {
 // 	if (req.headers.cookie) {
 // 		const cookies = req.headers.cookie;
@@ -346,37 +346,15 @@ const register = async (req, res, next) => {
 // };
 
 const verifytoken = (req, res, next) => {
-	if (req.headers["authorization"]) {
-		const cookies = req.headers["authorization"];
-		// console.log(cookies);
-		try {
-			token = cookies.split(" ")[1];
-		} catch (err) {
-			console.log(err);
-		}
-	} else {
-		return res.status(401).json({
-			reason: "unauthorized",
-			message: "Session not found",
-			success: false,
-		});
-	}
+	const { token, refreshToken } = req.cookies;
 
 	if (!token) {
-		return res.status(401).json({
-			reason: "unauthorized",
-			message: "token not found",
-			success: false,
-		});
+		return res.status(200).json(null);
 	}
 
 	jwt.verify(String(token), JWT_SECRET, (err, user) => {
 		if (err) {
-			return res.status(400).json({
-				reason: "unauthorized",
-				message: "Invalid token",
-				success: false,
-			});
+			return res.status(200).json(null);
 		} else {
 			req._id = user.user_id;
 			req.body.username = user.username;
@@ -435,7 +413,7 @@ const verify = async (req, res, next) => {
 			if (auth.otp === otp) {
 				verifyUser(username, true);
 				await Auth.findByIdAndDelete(auth._id);
-				console.log(req._id);
+				// console.log(req._id);
 				res.clearCookie(req._id);
 				return res.status(200).json({
 					message: "Account verified successfully",
@@ -497,51 +475,40 @@ const verify = async (req, res, next) => {
 // };
 
 const logout = async (req, res, next) => {
-	if (req.headers["authorization"]) {
-		const cookies = req.headers["authorization"];
-		try {
-			token = cookies.split(" ")[1];
-		} catch (err) {
-			console.log(err);
-		}
-	} else {
-		return res.status(200).json({
-			reason: "unauthorized",
-			message: "Session not found",
-			success: false,
-		});
-	}
+	const { refreshToken } = req.cookies;
+	const token = refreshToken;
+
+	res.clearCookie('token');
+	res.clearCookie('refreshToken');
 
 	if (!token) {
-		return res.status(200).json({
-			reason: "unauthorized",
-			message: "token not found",
-			success: false,
-		});
+		return res.status(200).json(null);
 	}
 
-	jwt.verify(String(token), JWT_SECRET, (err, user) => {
-		if (err) {
-			return res.status(400).json({
-				reason: "unauthorized",
-				message: "Invalid token",
-				success: false,
-			});
-		} else {
-			const refreshToken = req.body.refreshToken;
-			console.log(refreshToken);
+	// if (!token) {
+	// 	return res.status(200).json({
+	// 		reason: "unauthorized",
+	// 		message: "token not found",
+	// 		success: false,
+	// 	});
+	// }
 
+	jwt.verify(token, JWT_SECRET, (err, user) => {
+		if (err) {
+			return res.status(200).json(null);
+		} else {
+			
 			RefreshToken.findOne({ refreshToken: refreshToken })
 				.then((foundToken) => {
-					console.log(foundToken);
+					// console.log(foundToken);
 					if (!foundToken) {
 						throw new Error("Invalid refreshToken");
 					}
 
-					console.log("the email is :- " + user.username);
+					// console.log("the email is :- " + user.username);
 
 					return RefreshToken.updateOne(
-						{ email: user.email },
+						{ username: user.username },
 						{ $pull: { refreshToken: refreshToken } }
 					);
 				})
@@ -550,51 +517,38 @@ const logout = async (req, res, next) => {
 						throw new Error("Failed to remove refreshToken");
 					}
 
-					console.log("Successfully removed the refreshToken from the array");
-					return res.status(200).json({
-						reason: "Logout",
-						message: "Successfully Logged Out",
-						success: true,
-					});
+					// console.log("Successfully removed the refreshToken from the array");
+					return res.status(200).json(null);
 				})
 				.catch((err) => {
 					console.error(err.message);
-					return res.status(401).json({
-						reason: "token",
-						message: "Invalid Token/s",
-						success: false,
-					});
+					return res.status(200).json(null);
 				});
 		}
-		
 	});
-
 };
 
 const refresh = async (req, res, next) => {
 	let refreshTokenColl;
 	var username = req.username;
-	console.log(username);
+	// console.log(username);
 	refreshTokenColl = await RefreshToken.findOne({ username });
 
 	if (!refreshTokenColl) {
-		return res.status(401).json({
-			reason: "unauthorized",
-			message: "Invalid token",
-			success: false,
-		});
+		return res.status(200).json(null);
 	} else {
 		let token = jwt.sign(
 			{
-				_id: req._id,
-				fname: req.fname,
-				lname: req.lname,
+				user_id: req._id,
+				username: req.username,
 				email: req.email,
-				level: req.level,
+				role: req.role,
+				verified: req.verified,
 			},
 			JWT_SECRET,
-			{ expiresIn: "20s" }
+			{ expiresIn: "10m" }
 		);
+		res.cookie("token", token);
 		return res.status(200).json({
 			token,
 			message: Login_MSG.loginSuccess,
@@ -604,56 +558,26 @@ const refresh = async (req, res, next) => {
 };
 
 const verifyRefreshToken = async (req, res, next) => {
-	if (req.headers["authorization"]) {
-		const cookies = req.headers["authorization"];
-		try {
-			token = cookies.split(" ")[1];
-		} catch (err) {
-			console.log(err);
-		}
-	} else {
-		return res.status(401).json({
-			reason: "unauthorized",
-			message: "Session not found",
-			success: false,
-		});
-	}
+	const { refreshToken } = req.cookies;
+	const token = refreshToken;
 
 	if (!token) {
-		return res.status(401).json({
-			reason: "unauthorized",
-			message: "token not found",
-			success: false,
-		});
+		return res.status(200).json(null);
 	}
 
-	console.log(token);
+	// console.log(token);
 
 	jwt.verify(String(token), JWT_REFRESH_TOKEN_SECRET, (err, user) => {
 		if (err) {
 			console.log(err);
-			return res.status(401).json({
-				reason: "unauthorized",
-				message: "Invalid token",
-				success: false,
-			});
+			return res.status(200).json(null);
 		} else {
-			console.log("i am here");
-			// req._id = user._id;
-			// req.fname = user.fname;
-			// req.lname = user.lname;
-			// req.username = user.username;
-			// req.level = user.level;
-			// req.token = token;
-
-			console.log(user.username);
-
-			(req.user_id = user._id),
-				(req.role = user.role),
-				(req.username = user.username),
-				(req.email = user.email),
-				(req.verified = user.verified),
-				next();
+			req._id = user.user_id;
+			req.username = user.username;
+			req.email = user.email;
+			req.role = user.role;
+			req.verified = user.verified;
+			next();
 		}
 	});
 };

@@ -3,15 +3,22 @@ const { set, connect } = require("mongoose");
 const cors = require("cors");
 const { DB, REQUEST_TIMEOUT, PORT } = require("./config/db");
 const { success, error } = require("consola");
+const cookieParser = require('cookie-parser');
 const auth = require("./routes/auth-routes");
 const roles = require("./routes/roles-routes");
 const { mailer } = require("./controllers/Mailer/mailer");
 
 const app = express();
 
-app.use(cors());
+app.use(
+	cors({
+		credentials: true,
+		origin: "http://localhost:5173",
+	})
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 //App routes start here
 
@@ -45,12 +52,11 @@ app.use("/api/auth", auth);
 app.use("/api/roles", roles);
 // app.use("/api/banking",bank);
 
-
-
 app.use((req, res) => {
 	res.status(404).json({
 		reason: "invalid-request",
-		message: "The endpoint you wanna reach is not available! Please check the endpoint again",
+		message:
+			"The endpoint you wanna reach is not available! Please check the endpoint again",
 		success: false,
 	});
 });
