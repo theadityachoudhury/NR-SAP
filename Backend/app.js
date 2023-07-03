@@ -10,15 +10,10 @@ const { mailer } = require("./controllers/Mailer/mailer");
 
 const app = express();
 
-const allowedOrigins =
-	process.env.NODE_ENV === "production"
-		? "https://frontend.unknownclub.me"
-		: "http://localhost:5173";
-
 app.use(
 	cors({
 		credentials: true,
-		origin: allowedOrigins,
+		origin: ['https://frontend.unknownclub.me','http://localhost:5173'],
 	})
 );
 app.use(express.json());
