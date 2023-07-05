@@ -4,13 +4,16 @@ const RefreshToken = require("../../models/refreshToken");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const {
 	loginSchema,
 	signupSchema,
 	validateUsername,
 	validateEmail,
+	PasswordSchema,
 } = require("../Validators/Auth/validators");
 const { JWT_SECRET, JWT_REFRESH_TOKEN_SECRET } = require("../../config/db");
+const { mailer } = require("../Mailer/mailer");
 
 const Login_MSG = {
 	usernameNotExist: "Username is not found. Invalid login credentials.",
@@ -96,6 +99,13 @@ const passgen = (length) => {
 		.join("");
 	return password;
 };
+
+//Hashing the forget otp
+function hashString(string) {
+	const hash = crypto.createHash("sha256");
+	hash.update(string);
+	return hash.digest("hex");
+}
 
 //Internal function to verify a user
 const verifyUser = async (username, verified) => {
@@ -297,7 +307,7 @@ const getuser = async (req, res, next) => {
 	} else {
 		r = user;
 	}
-	return res.status(200).json({data:user});
+	return res.status(200).json({ data: user });
 };
 
 // const verifytoken = (req, res, next) => {
@@ -478,8 +488,8 @@ const logout = async (req, res, next) => {
 	const { refreshToken } = req.cookies;
 	const token = refreshToken;
 
-	res.clearCookie('token');
-	res.clearCookie('refreshToken');
+	res.clearCookie("token");
+	res.clearCookie("refreshToken");
 
 	if (!token) {
 		return res.status(200).json(null);
@@ -497,7 +507,6 @@ const logout = async (req, res, next) => {
 		if (err) {
 			return res.status(200).json(null);
 		} else {
-			
 			RefreshToken.findOne({ refreshToken: refreshToken })
 				.then((foundToken) => {
 					// console.log(foundToken);
@@ -582,6 +591,82 @@ const verifyRefreshToken = async (req, res, next) => {
 	});
 };
 
+const forget = async (req, res, next) => {
+	const auth_type = "pass_reset";
+	const { email } = req.body;
+	const user = await User.findOne({ email: email });
+	if (!user) {
+		return res.status(404).json({
+			reason: "email",
+			message: "Account associated with this E-Mail Id not found!!",
+			success: false,
+		});
+	}
+	const username = user.username;
+
+	let auth = await Auth.findOne({ email: email, auth_type: auth_type });
+	const currentDate = new Date().toISOString().slice(0, 10); // Get current date in YYYY-MM-DD format
+	const salt = crypto.randomBytes(16).toString("hex"); // Generate a random salt
+	const stringToHash = currentDate + email + username + salt;
+	const otp = hashString(stringToHash);
+	if (auth) {
+		auth.otp = otp;
+	} else {
+		auth = new Auth({
+			email,
+			username,
+			auth_type,
+			otp,
+		});
+	}
+	await auth.save();
+	mailer(
+		email,
+		"Password Reset Link | NR SAP",
+		`To reset your password click this link:- <a href="https://frontend.unknownclub.me/forget/${otp}" target="_blank">https://frontend.unknownclub.me/forget/${otp}</a>`,
+		username,
+		auth_type
+	);
+	return res.status(200).json({
+		message: "Password Reset Link Sent to the E-Mail ID",
+		success: true,
+	});
+};
+
+const forgetIsValid = async (req, res, next) => {
+	const auth_type = "pass_reset";
+	const { otp } = req.params;
+	const auth = await Auth.findOne({ otp: otp, auth_type: auth_type });
+	// console.log(auth);
+
+	return auth ? res.status(200).json() : res.status(404).json();
+};
+
+const forget_save = async (req, res, next) => {
+	const auth_type = "pass_reset";
+	const { password, otp } = req.body;
+	try {
+		const LoginRequest = await PasswordSchema.validateAsync(req.body);
+		const auth = await Auth.findOne({ otp: otp, auth_type: auth_type });
+		const user = await User.findOne({
+			username: auth.username,
+			email: auth.email,
+		});
+		if (!user) {
+			return res.status(404).json();
+		}
+		user.password = await bcrypt.hash(password, 12);
+		await user.save();
+		await Auth.findByIdAndDelete(auth._id);
+		return res.json();
+	} catch (err) {
+		console.log(err);
+		return res
+			.status(400)
+			.json("Please try again with password with min. 8 characters");
+	}
+};
+
 module.exports = {
 	login,
 	register,
@@ -592,4 +677,7 @@ module.exports = {
 	verifyRefreshToken,
 	refresh,
 	getuser,
+	forget,
+	forgetIsValid,
+	forget_save,
 };

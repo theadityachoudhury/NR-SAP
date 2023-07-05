@@ -37,7 +37,7 @@ export default function LoginPage() {
 				<div
 					className="hidden bg-cover lg:block lg:w-2/3"
 					style={{
-						backgroundImage:  `url(${bg})`,
+						backgroundImage: `url(${bg})`,
 					}}>
 					<img
 						className="absolute top-0 left-5 mt-4 ml-4 w-16 h-16"
@@ -105,11 +105,11 @@ export default function LoginPage() {
 										<label htmlFor="password" className="text-sm text-gray-600">
 											Password
 										</label>
-										<a
-											href="#"
+										<Link
+											to={"/forget"}
 											className="text-sm text-gray-400 focus:text-FF432A hover:text-red-500 hover:underline">
 											Forgot password?
-										</a>
+										</Link>
 									</div>
 
 									<input

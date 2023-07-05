@@ -11,7 +11,7 @@ export function UserContextProvider({ children }) {
 		axios
 			.get("/api/auth/user")
 			.then((res) => {
-                if (res.data === null) {
+				if (res.data === null) {
 					setUser(null);
 				} else {
 					setUser(res.data.data);
@@ -28,6 +28,7 @@ export function UserContextProvider({ children }) {
 	const refreshAccessToken = async () => {
 		await axios.get("/api/auth/refresh");
 		fetchUser();
+		// console.clear();
 	};
 
 	// useEffect(() => {
@@ -47,16 +48,17 @@ export function UserContextProvider({ children }) {
 	useEffect(() => {
 		if (!user) {
 			fetchUser();
-        }
-        if (user === null) {
-            refreshAccessToken();
-        }
+		}
+		if (user === null) {
+			refreshAccessToken();
+		}
+		// console.clear();
 
 		// Refresh the access token every 8 minutes
 		const refreshAccessTokenInterval = setInterval(
 			refreshAccessToken,
 			8 * 60 * 1000
-            // 10*1000
+			// 10*1000
 		);
 
 		// Clean up the interval when the component unmounts

@@ -21,6 +21,14 @@ const loginSchema = Joi.object({
 		.required(),
 });
 
+const PasswordSchema = Joi.object({
+	password: Joi.string()
+		.pattern(new RegExp("^[a-zA-Z0-9!@#$%^&*()_]{3,30}$"))
+		.min(8)
+		.required(),
+	otp: Joi.string().required(),
+});
+
 const signupSchema = Joi.object({
 	name: Joi.string().min(2).required(),
 	username: Joi.string().min(4).required(),
@@ -83,6 +91,7 @@ const isOTP = (req, res, next) => {
 module.exports = {
 	validateEmail,
 	validateUsername,
+	PasswordSchema,
 	loginSchema,
 	signupSchema,
 	checkloggedin,
