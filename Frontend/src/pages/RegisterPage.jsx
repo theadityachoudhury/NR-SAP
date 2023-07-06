@@ -116,6 +116,37 @@ export default function RegistePage() {
 									/>
 								</div>
 								<div className="mt-6">
+                  <label
+                    htmlFor="date"
+                    className="block mb-2 text-sm text-gray-600"
+                  >
+                    Date of birth
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    id="date"
+                    placeholder="Enter Date"
+                    className=" w-full px-4 py-2 mt-2 border-b-4 text-gray-300 placeholder-gray-600 bg-black  border-b-black-800 rounded-lg dark:placeholder-gray-400 dark:bg-white dark:text-gray-700 dark:border-gray-300 focus:border-b-red-400 dark:focus:border-b-red-400  focus:outline-none  "
+                  />
+                </div>
+
+                <div className="mt-6">
+                  <label
+                    htmlFor="phone"
+                    className="block mb-2 text-sm text-gray-600"
+                  >
+                    Phone number
+                  </label>
+                  <input
+                    type="password"
+                    name="phone"
+                    id="phone"
+                    placeholder="Enter department"
+                    className=" w-full px-4 py-2 mt-2 border-b-4 text-gray-300 placeholder-gray-600 bg-black  border-b-black-800 rounded-lg dark:placeholder-gray-400 dark:bg-white dark:text-gray-700 dark:border-gray-300 focus:border-b-red-400 dark:focus:border-b-red-400  focus:outline-none  "
+                  />
+                </div>
+								<div className="mt-6">
 									<label
 										htmlFor="email"
 										className="block mb-2 text-sm text-gray-600">
