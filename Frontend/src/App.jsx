@@ -32,11 +32,12 @@ function App() {
 				<Route path="/" element={<Layout />}>
 					<Route index element={<IndexPage />} />
 
-					<Route path="/register" element={<RegistePage />} />
+					
 					<Route path="/stone" element={<StoneChip />} />
 					<Route path="/account/:subpage?" element={<AccountPage />} />
 					<Route path="/account/:subpage/:action" element={<AccountPage />} />
 				</Route>
+				<Route path="/register" element={<RegistePage />} />
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/forget/:subpage?" element={<ForgetPassPage />} />
 				
