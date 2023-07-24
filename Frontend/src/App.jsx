@@ -31,9 +31,7 @@ function App() {
 			<Routes>
 				<Route path="/" element={<Layout />}>
 					<Route index element={<IndexPage />} />
-					<StepperContext>
-						<Route path="/stone" element={<StoneChip />} />
-					</StepperContext>
+					<Route path="/stone" element={<StoneChip />} />
 					<Route path="/account/:subpage?" element={<AccountPage />} />
 					<Route path="/account/:subpage/:action" element={<AccountPage />} />
 				</Route>

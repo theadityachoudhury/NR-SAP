@@ -2,7 +2,7 @@ import { createContext, useState } from "react";
 
 export const StepperContext = createContext({});
 
-export function UserContextProvider({ children }) {
+export function StepperContextProvider({ children }) {
 	const [formData, setFormData] = useState({
 		step1Data: {},
 		step2Data: {},
@@ -10,6 +10,8 @@ export function UserContextProvider({ children }) {
 		step4Data: {},
 		step5Data: {},
 	});
+
+	console.log(formData);
 
 	const updateStep1Data = (data) => {
 		setFormData((prevData) => ({
@@ -50,11 +52,7 @@ export function UserContextProvider({ children }) {
 		<StepperContext.Provider
 			value={{
 				formData,
-				updateStep1Data,
-				updateStep2Data,
-				updateStep3Data,
-				updateStep4Data,
-				updateStep5Data,
+				setFormData,
 			}}>
 			{children}
 		</StepperContext.Provider>
