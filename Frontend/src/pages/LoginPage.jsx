@@ -48,7 +48,7 @@ export default function LoginPage() {
 					/>
 					<div className="absolute top-0 left-20 mt-4 ml-4 text-center max-w-xs">
 						<span
-							className="text-black text-xl font-bold"
+							className="text-black text-3xl font-bold"
 							/* style={{ fontFamily: "Poppins" }} */
 						>
 							NR SALES AND MARKETING PRIVATE LIMITED
