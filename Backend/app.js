@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 const auth = require("./routes/auth-routes");
 const roles = require("./routes/roles-routes");
 const { mailer } = require("./controllers/Mailer/mailer");
-const stone = require("./routes/stone-chip-routes");
+const stone = require("./routes/stonechip-routes");
 
 const app = express();
 
