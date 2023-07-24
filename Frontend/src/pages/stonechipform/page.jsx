@@ -1,8 +1,6 @@
-"use client";
-
-import Stepper from "../components/stepper.jsx";
-import Steppercontroller from "../components/steppercontroller";
-import {StepperContext} from "../contexts/steppercontext";
+import Stepper from "./stepper.jsx";
+import Steppercontroller from "./steppercontroller";
+import {StepperContext} from "./contexts/steppercontext";
 
 
 import Purchase from "./steps/purchase.tsx";
@@ -11,7 +9,7 @@ import Customerp from "./steps/customerp.tsx";
 import Customerd from "./steps/customerd.tsx";
 import Payement from "./steps/payement.tsx";
 import { useState } from "react";
-export default function App() {
+export default function StoneChip() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [userData, setuserData] = useState('');

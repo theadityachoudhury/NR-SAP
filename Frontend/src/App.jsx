@@ -10,17 +10,18 @@ import axios from "axios";
 import { UserContextProvider } from "./UserContext";
 import AccountPage from "./pages/AccountPage";
 import ForgetPassPage from "./pages/ForgetPassPage";
-import StoneChip from "./pages/StoneChip";
+import StoneChip from "./pages/stonechipform/page";
+import { StepperContext } from "./pages/stonechipform/contexts/steppercontext";
 
 // axios.defaults.baseURL = "http://localhost:5000";
 
-const baseURL = window.location.hostname === "frontend.unknownclub.me"
-  ? "https://backend.unknownclub.me"
-	: "http://localhost:5000";
+const baseURL =
+	window.location.hostname === "frontend.unknownclub.me"
+		? "https://backend.unknownclub.me"
+		: "http://localhost:5000";
 // console.log(baseURL);
 
 axios.defaults.baseURL = baseURL;
-
 
 axios.defaults.withCredentials = true;
 
@@ -28,19 +29,17 @@ function App() {
 	return (
 		<UserContextProvider>
 			<Routes>
-				
 				<Route path="/" element={<Layout />}>
 					<Route index element={<IndexPage />} />
-
-					
-					<Route path="/stone" element={<StoneChip />} />
+					<StepperContext>
+						<Route path="/stone" element={<StoneChip />} />
+					</StepperContext>
 					<Route path="/account/:subpage?" element={<AccountPage />} />
 					<Route path="/account/:subpage/:action" element={<AccountPage />} />
 				</Route>
 				<Route path="/register" element={<RegistePage />} />
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/forget/:subpage?" element={<ForgetPassPage />} />
-				
 			</Routes>
 		</UserContextProvider>
 	);
