@@ -3,6 +3,9 @@ import React from 'react'
 export default function loading() {
   return (
     <div>
+      <h1 className="text-gray-800 text-3xl font-semibold px-4">
+        Loading Details
+      </h1>
         <div className=" text-left mx-4 my-4 mb-4">
         <label
           htmlFor="vec-num"

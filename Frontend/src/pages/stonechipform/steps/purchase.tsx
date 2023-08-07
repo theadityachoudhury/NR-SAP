@@ -3,6 +3,9 @@ import React from 'react'
 export default function purchase() {
   return (
     <div>
+      <h1 className="text-gray-800 text-3xl font-semibold px-4">
+        Purchase Details
+      </h1>
       <div className=" text-left mx-4 my-4 mb-4">
               <label htmlFor="pro-na" className="text-sm justify-center inline-flex font-medium leading-6 text-gray-900">
               Purchased Product Name

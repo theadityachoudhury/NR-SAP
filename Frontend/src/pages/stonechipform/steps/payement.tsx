@@ -3,6 +3,9 @@ import React from 'react'
 export default function payement() {
   return (
     <div>
+      <h1 className="text-gray-800 text-3xl font-semibold px-4">
+        Payement Details
+      </h1>
       <div className=" text-left mx-4 my-4 mb-4">
         <label
           htmlFor="trba-na"
